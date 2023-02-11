@@ -36,7 +36,8 @@ kr = np.linalg.inv(B.T@B)@B.T@Bm
 # time and reference
 dt = 0.01
 time = np.arange(0, 20, dt)
-ref = F*np.ones((1, len(time)))  # array
+ref = F*np.ones(np.shape(time))  # array
+print(np.shape(ref))
 
 # save matrix
 xm = np.zeros((2, len(time)))  # 2xn
@@ -49,13 +50,13 @@ x[:,[0]] = np.array([[0],
                      [0]])
 for i in range(len(time)-1):
     # control law
-    u = kxhat[[i],:]@x[:,[i]] + krhat[:,[i]]@ref[:,[i]]
+    u = kxhat[[i],:]@x[:,[i]] + krhat[:,[i]]*ref[i]
     # adaptive law
     e = xm[:,[i]] - x[:,[i]]
     kxhatdot = (gam_x@x[:,[i]]@e.T@Pbar*np.sign(b)).T
-    krhatdot = gam_r@ref[:,[i]]@e.T@Pbar*np.sign(b)
+    krhatdot = gam_r*ref[i]@e.T@Pbar*np.sign(b)
     # dynamics
-    xmdot = Am@xm[:,[i]] + Bm@ref[:,[i]]
+    xmdot = Am@xm[:,[i]] + Bm*ref[i]
     xdot = A@x[:,[i]] + B@u
     # integrating
     xm[:,[i+1]] = xm[:,[i]] + xmdot*dt

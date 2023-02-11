@@ -147,7 +147,7 @@ Second order SISO\
 Can see the plant states x1 (position) and x2 (velocity) is following the reference model states xm1 and xm2.
 
 ![image](plots/2nd_parameters.png)\
-Can see that the estimated kx and kr gains trying to converge to the actual kx and kr gains.
+Can see that the estimated kx and kr gains trying to converge to the actual kx and kr gains. MRAC does not guarantee parameter convergence, MRAC only guarantees plant and reference plant convergence. Persistance excitation helps the results of MRAC.
 
 # References
 Model-Reference Adaptive Control: A Primer by Nguyen, Nhan T.

@@ -1,124 +1,90 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.integrate import odeint
+import control
 
-# # unknown
-# a = 1
-# b = 3
-# # known
-# gam = 2
-# am = -4
-# bm = 4
+# ============================================
+# 2nd order SISO
 
-# time = np.arange(0, 10, 0.01)
-# ref = 4
-# # ref = 4*np.sin(3*time)
+m = 10  # kg
+b = 10  # N s/m
+k = 20  # N/m
+F = 1  # N
 
-# def model(states, time, ref):
-#     x, xm, kxhat, krhat = states
-#     ref = 4*np.sin(3*time)
-#     u = kxhat*x + krhat*ref
-#     xdot = a*x + b*u
-#     xmdot = am*xm + bm*ref
+Am = np.array([[0, 1],
+               [-k/m, -b/m]])
+Bm = np.array([[0],
+               [1/m]])
+
+A = np.array([[0, 1],
+              [-1, -1]])
+B = np.array([[0],
+              [1]])
+
+Q = np.eye(2)
+P = control.lyap(Am.T, Q)
+Pbar = P[:,[1]]
+
+# adaptive gains
+gam_x = np.array([[10, 0],
+                  [0, 10]])
+gam_r = np.array([[10]])
+
+# true k gains
+kx = np.linalg.inv(B.T@B)@B.T@(Am-A)
+kr = np.linalg.inv(B.T@B)@B.T@Bm
+
+# time and reference
+dt = 0.01
+time = np.arange(0, 20, dt)
+ref = F*np.ones((1, len(time)))  # array
+
+# save matrix
+xm = np.zeros((2, len(time)))  # 2xn
+x = np.zeros((2, len(time)))  # 2xn
+kxhat = np.zeros((len(time), 2))  # nx2
+krhat = np.zeros((1, len(time)))  # 1xn
+
+# init
+x[:,[0]] = np.array([[0],
+                     [0]])
+for i in range(len(time)-1):
+    # control law
+    u = kxhat[[i],:]@x[:,[i]] + krhat[:,[i]]@ref[:,[i]]
+    # adaptive law
+    e = xm[:,[i]] - x[:,[i]]
+    kxhatdot = (gam_x@x[:,[i]]@e.T@Pbar*np.sign(b)).T
+    krhatdot = gam_r@ref[:,[i]]@e.T@Pbar*np.sign(b)
+    # dynamics
+    xmdot = Am@xm[:,[i]] + Bm@ref[:,[i]]
+    xdot = A@x[:,[i]] + B@u
+    # integrating
+    xm[:,[i+1]] = xm[:,[i]] + xmdot*dt
+    x[:,[i+1]] = x[:,[i]] + xdot*dt
+    kxhat[[i+1],:] = kxhat[[i],:] + kxhatdot*dt
+    krhat[:,[i+1]] = krhat[:,[i]] + krhatdot*dt
     
-#     e = x - xm
-#     kxhatdot = -gam*x*e
-#     krhatdot = -gam*ref*e
-#     return [xdot, xmdot, kxhatdot, krhatdot]
+# print(np.shape(xm[0,[i+1]]), np.shape(xm[:,[i]]), np.shape(xmdot))
 
-# x0 = [0, 0, 0, 0]
-# states = odeint(model, x0, time, args=(ref,))
-# print(np.shape(states))
-# x = states[:,0]
-# xm = states[:,1]
-# kxhat = states[:,2]
-# krhat = states[:,3]
-# kx = (am-a)/b
-# kr = bm/b
-
-# plt.figure(1)
-# plt.subplot(2,1,1)
-# plt.plot(time, xm, label='xm')
-# plt.plot(time, x, label='x')
-# plt.legend()
-# plt.subplot(2,1,2)
-# plt.plot(time, kx*np.ones(len(time)), label='kx')
-# plt.plot(time, kxhat, label='kxhat')
-# plt.plot(time, kr*np.ones(len(time)), label='kr')
-# plt.plot(time, krhat, label='krhat')
-# plt.legend()
-# plt.show()
-
-# ==========================================================
-
-# unknown
-a = 1
-b = 3
-theta = np.array([[0], [-1], [1], [0]])
-# known
-am = -4
-bm = 4
-gam = 2
-thetahat = np.array([[0], [0], [0], [0]])
-
-
-time = np.arange(0, 50, 0.02)
-def model(states, time):
-    x, xm, kxhat, krhat, thehat1, thehat2, thehat3, thehat4 = states
-    thetahat = np.array([[thehat1], [thehat2], [thehat3], [thehat4]])
-    phi = np.array([[x**3], [np.exp(-((x+0.5)**2)*10)], [np.exp(-((x-0.5)**2)*10)], [np.sin(2*x)]])
-    ref = np.sin(3*time) + np.sin(3*time/2) + np.sin(3*time/4) + np.sin(3*time/8)
-    u = kxhat*x + krhat*ref + thetahat.T@phi
-    
-    xdot = a*x + b*(u-theta.T@phi)
-    xmdot = am*x + bm*ref
-    e = x - xm
-    kxhatdot = -gam*x*e
-    krhatdot = -gam*ref*e
-    thetahatdot = -gam*phi*e
-    
-    thehatdot1 = thetahatdot[0,0]
-    thehatdot2 = thetahatdot[1,0]
-    thehatdot3 = thetahatdot[2,0]
-    thehatdot4 = thetahatdot[3,0]
-    # print(np.shape(xdot), np.shape(xmdot), np.shape(kxhatdot), np.shape(krhatdot), np.shape(thetahatdot), np.shape(thetahatdot1))
-    return [xdot, xmdot, kxhatdot, krhatdot, thehatdot1, thehatdot2, thehatdot3, thehatdot4]
-
-x0 = np.array([0, 0, 0, 0, 0, 0, 0, 0])
-states = odeint(model, x0, time)
-print(np.shape(states))
-
-x = states[:,0]
-xm = states[:,1]
-kxhat = states[:,2]
-krhat = states[:,3]
-thetahat1 = states[:,4]
-thetahat2 = states[:,5]
-thetahat3 = states[:,6]
-thetahat4 = states[:,7]
-kx = (am-a)/b
-kr = bm/b
-
+# plotting
 plt.figure(1)
-plt.subplot(3,1,1)
-plt.plot(time, xm, label='xm')
-plt.plot(time, x, label='x')
+plt.plot(time, xm[0,:], '-', label='xm1')
+plt.plot(time, xm[1,:], '-', label='xm2')
+plt.plot(time, x[0,:], '--', label='x1')
+plt.plot(time, x[1,:], '--', label='x2')
 plt.legend()
-plt.subplot(3,1,2)
-plt.plot(time, kx*np.ones(len(time)), label='kx')
-plt.plot(time, kxhat, label='kxhat')
-plt.plot(time, kr*np.ones(len(time)), label='kr')
-plt.plot(time, krhat, label='krhat')
+plt.title('MRAC 2nd order SISO')
+plt.xlabel('time')
+plt.ylabel('magnitude')
+plt.figure(2)
+plt.plot(time, kx[0,0]*np.ones(np.shape(time)), 'b-', label='kx1')
+plt.plot(time, kx[0,1]*np.ones(np.shape(time)), 'g-', label='kx2')
+plt.plot(time, kr[0,0]*np.ones(np.shape(time)), 'r-', label='kr')
+plt.plot(time, kxhat[:,0], 'b--', label='kxhat1')
+plt.plot(time, kxhat[:,1], 'g--', label='kxhat2')
+plt.plot(time, krhat[0,:], 'r--', label='krhat')
 plt.legend()
-plt.subplot(3,1,3)
-plt.plot(time, theta[0,0]*np.ones(len(time)), label='theta1')
-plt.plot(time, thetahat1, '--', label='thetahat1')
-plt.plot(time, theta[1,0]*np.ones(len(time)), label='theta2')
-plt.plot(time, thetahat2, '--', label='thetahat2')
-plt.plot(time, theta[2,0]*np.ones(len(time)), label='theta3')
-plt.plot(time, thetahat2, '--', label='thetahat3')
-plt.plot(time, theta[3,0]*np.ones(len(time)), label='theta4')
-plt.plot(time, thetahat2, '--', label='thetahat4')
-plt.legend()
+plt.title('adaptive parameters')
+plt.xlabel('time')
+plt.ylabel('magnitude')
 plt.show()
 

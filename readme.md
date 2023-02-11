@@ -46,15 +46,15 @@ If $V(x)$ has a finite limit as t -> $\infin$ and $\dot V(x)$ is uniformly conti
 
 Open loop plant model state space equation
 
-$$\dot x = A*x + B*u$$
+$$\dot{x} = A x + B u$$
 
 Reference model state space equation
 
-$$\dot{x_m} = A_m*x_m + B_m*r$$
+$$\dot{x_m} = A_m x_m + B_m r$$
 
 Control law is defined as
 
-$$u = \hat{k_x}*x + \hat{k_r}*r$$
+$$u = \hat{k_x} x + \hat{k_r} r$$
 
 Substitute u into open loop to get the closed loop state space equation 
 

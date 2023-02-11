@@ -50,37 +50,37 @@ $$\dot x = A*x + B*u$$
 
 Reference model state space equation
 
-$$\dot x_m = A_m*x_m + B_m*r$$
+$$\dot{x_m} = A_m*x_m + B_m*r$$
 
 Control law is defined as
 
-$$u = \hat k_x*x + \hat k_r*r$$
+$$u = \hat{k_x}*x + \hat{k_r}*r$$
 
 Substitute u into open loop to get the closed loop state space equation 
 
-$$\dot x = Ax + B(\hat k_xx + \hat k_rr)$$
+$$\dot{x} = Ax + B(\hat{k_x}x + \hat{k_r}r)$$
 
-$$\dot x = Ax + B \hat k_xx + B \hat k_rr$$
+$$\dot{x} = Ax + B \hat{k_x}x + B \hat{k_r}r$$
 
-$$\dot x = (A+B \hat k_x)x + B \hat k_rr$$
+$$\dot{x} = (A+B \hat{k_x})x + B \hat{k_r}r$$
 
 The uncertain plant would behave the same as the reference model if model matching conditions are met.
 
-$$A_m = A + B \hat k_x$$
+$$A_m = A + B \hat{k_x}$$
 
-$$B_m = B \hat k_r$$
+$$B_m = B \hat{k_r}$$
 
 error is defined to be
 
 $$e = x_m - x$$
 
-$$\dot e = \dot x_m - \dot x$$
+$$\dot{e} = \dot{x_m} - \dot{x}$$
 
 Substituting in the model equations
 
-$$\dot e = A_m x_m + B_m r - (A + B \hat k_x)x - B \hat k_r r$$
+$$\dot{e} = A_m x_m + B_m r - (A + B \hat{k_x})x - B \hat{k_r} r$$
 
-$$\dot e = A_m x_m + B_m r - (A + B \hat k_x)x - B \hat k_r r + A_m x - A_m x$$
+$$\dot{e} = A_m x_m + B_m r - (A + B \hat{k_x})x - B \hat{k_r} r + A_m x - A_m x$$
 
 Substituting Ideal matching conditions
 

@@ -87,4 +87,3 @@ plt.title('adaptive parameters')
 plt.xlabel('time')
 plt.ylabel('magnitude')
 plt.show()
-
